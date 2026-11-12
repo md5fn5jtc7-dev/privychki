@@ -1,5 +1,5 @@
 // Офлайн-режим: сначала берём свежую версию из сети, без сети — сохранённую копию.
-const CACHE = 'habits-v1';
+const CACHE = 'habits-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
