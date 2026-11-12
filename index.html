@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Привычки</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Привычки">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --text:#1C1C1E; --muted:#8E8E93; --line:#E5E5EA;
+  --accent:#FF9500; --danger:#FF3B30; --ice:#5AC8FA; --sheet:#FFFFFF; --field:#F2F2F7;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#000000; --card:#1C1C1E; --text:#F2F2F7; --muted:#8E8E93; --line:#2C2C2E;
+    --sheet:#1C1C1E; --field:#2C2C2E; --shadow:none;
+  }
+  .streak .fl{opacity:.7}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{
+  font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;overscroll-behavior-y:none;
+}
+textarea,input{-webkit-user-select:text;user-select:text}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 32px)}
+.hidden{display:none!important}
+
+/* ---------- top ---------- */
+.top{display:flex;align-items:flex-end;justify-content:space-between;margin:8px 0 18px}
+.top .date{color:var(--muted);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.top h1{margin:2px 0 0;font-size:34px;font-weight:800;letter-spacing:-.02em}
+.icon-btn{width:40px;height:40px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;font-size:20px;color:var(--muted)}
+.section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;margin:26px 4px 8px;letter-spacing:.02em}
+
+/* ---------- habit rows ---------- */
+.row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.streak{width:52px;flex:none;display:flex;flex-direction:column;align-items:center;line-height:1}
+.streak .fl{font-size:26px;filter:grayscale(1);opacity:.45;transition:.25s}
+.streak b{font-size:17px;margin-top:3px;color:var(--muted);font-variant-numeric:tabular-nums}
+.streak.on .fl{filter:none;opacity:1}
+.streak.on b{color:var(--accent)}
+.folder{
+  position:relative;flex:1;min-width:0;margin-top:10px;min-height:68px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 82%,#fff),var(--c));
+  border-radius:4px 16px 16px 16px;padding:13px 64px 12px 16px;color:#fff;text-align:left;
+  box-shadow:0 4px 14px color-mix(in srgb,var(--c) 30%,transparent);
+}
+.folder::before{
+  content:"";position:absolute;left:0;top:-9px;width:44%;max-width:150px;height:14px;
+  background:color-mix(in srgb,var(--c) 82%,#fff);border-radius:9px 12px 0 0;
+}
+.folder:active{transform:scale(.98)}
+.folder .name{font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folder .sub{font-size:13px;opacity:.9;margin-top:2px}
+.check{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  width:42px;height:42px;border-radius:21px;border:2.5px solid rgba(255,255,255,.85);
+  display:grid;place-items:center;font-size:22px;font-weight:800;color:transparent;
+}
+.check.done{background:#fff;color:var(--c);border-color:#fff}
+.check.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:translateY(-50%) scale(1)}45%{transform:translateY(-50%) scale(1.25)}100%{transform:translateY(-50%) scale(1)}}
+.streak.bump .fl{animation:bump .5s ease}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.45) rotate(-8deg)}100%{transform:scale(1)}}
+.add-btn{width:100%;padding:15px;border-radius:14px;border:2px dashed var(--line);color:var(--muted);font-weight:600;margin-top:4px}
+.add-btn:active{background:var(--card)}
+.empty{text-align:center;color:var(--muted);padding:24px 12px 8px}
+.empty .big{font-size:44px}
+
+/* ---------- calendar ---------- */
+.card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-head .m{font-weight:700;font-size:18px}
+.nav{width:36px;height:36px;border-radius:18px;font-size:22px;color:var(--accent)}
+.nav:active{background:var(--field)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.wd{text-align:center;font-size:12px;color:var(--muted);font-weight:600;padding:4px 0}
+.day{aspect-ratio:1/1.12;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding-top:5px;font-size:16px;font-variant-numeric:tabular-nums}
+.day:active{background:var(--field)}
+.day .n{width:28px;height:28px;border-radius:14px;display:grid;place-items:center}
+.day.today .n{background:var(--accent);color:#fff;font-weight:700}
+.day.future{color:var(--muted);opacity:.5}
+.day.sel{outline:2px solid var(--c,var(--accent));outline-offset:-2px}
+.dots{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:34px;margin-top:3px}
+.dot{width:6px;height:6px;border-radius:3px}
+/* detail calendar: filled days */
+.day.fill .n{background:var(--c);color:#fff;font-weight:700}
+.day.frozen .n{background:color-mix(in srgb,var(--ice) 30%,transparent);color:var(--text)}
+.day .ice{font-size:10px;line-height:1;margin-top:2px}
+
+/* ---------- detail screen ---------- */
+.screen{position:fixed;inset:0;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:10;animation:slide .28s ease}
+@keyframes slide{from{transform:translateX(100%)}to{transform:none}}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.back{color:var(--accent);font-size:17px;font-weight:500;padding:8px 0;display:flex;align-items:center;gap:2px}
+.back span{font-size:28px;line-height:0;margin-top:-2px}
+.hero{border-radius:20px;padding:20px;color:#fff;text-align:center;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 78%,#fff),var(--c));}
+.hero .nm{font-size:22px;font-weight:800;word-break:break-word}
+.hero .big{font-size:56px;font-weight:800;line-height:1.05;margin-top:8px}
+.hero .lbl{opacity:.9;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{background:var(--card);border-radius:14px;padding:12px 8px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.mark-btn{width:100%;margin-top:14px;padding:16px;border-radius:14px;font-weight:700;font-size:17px;
+  background:var(--c);color:#fff}
+.mark-btn.done{background:var(--card);color:var(--c);box-shadow:inset 0 0 0 2px var(--c)}
+.mark-btn:disabled{opacity:.4}
+textarea{width:100%;min-height:96px;border:0;border-radius:14px;background:var(--card);color:var(--text);
+  font:16px/1.4 inherit;font-family:inherit;padding:12px 14px;resize:vertical;box-shadow:var(--shadow);outline:none}
+.saved{font-size:12px;color:var(--muted);height:16px;margin:4px 4px 0;text-align:right}
+.note-item{display:block;width:100%;text-align:left;background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.note-item .d{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.note-item .t{white-space:pre-wrap;word-break:break-word;-webkit-user-select:none}
+
+/* ---------- bottom sheet ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--sheet);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;
+  padding:8px 18px calc(env(safe-area-inset-bottom) + 18px);animation:up .25s ease}
+@keyframes up{from{transform:translateY(100%)}}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet h2{font-size:20px;margin:4px 0 14px}
+.sheet p{color:var(--muted);font-size:15px;margin:6px 0 12px}
+.field{width:100%;font-size:17px;padding:13px 14px;border-radius:12px;border:0;background:var(--field);color:var(--text);outline:none}
+.swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0 20px}
+.sw{aspect-ratio:1;border-radius:50%;background:var(--c);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px}
+.sw.on{box-shadow:0 0 0 3px var(--sheet),0 0 0 5px var(--c)}
+.btn{display:block;width:100%;padding:15px;border-radius:14px;font-weight:700;font-size:17px;text-align:center;margin-top:10px;background:var(--field)}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.red{color:var(--danger)}
+.btn.red-fill{background:var(--danger);color:#fff}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.list-row:last-child{border-bottom:0}
+.list-row .cd{width:14px;height:14px;border-radius:7px;background:var(--c);flex:none}
+.list-row .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tog{width:51px;height:31px;border-radius:16px;background:var(--line);position:relative;flex:none;transition:.2s}
+.tog::after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:.2s}
+.tog.on{background:var(--c)}
+.tog.on::after{left:22px}
+.howto{background:var(--field);border-radius:14px;padding:12px 14px 12px 32px;margin:0 0 6px;font-size:15px}
+.howto li{margin:4px 0}
+.group-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;margin:20px 2px 6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%);
+  background:rgba(30,30,30,.92);color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;z-index:100;
+  opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="main">
+  <header class="top">
+    <div>
+      <div class="date" id="todayLabel"></div>
+      <h1>Привычки</h1>
+    </div>
+    <button class="icon-btn" data-act="settings" aria-label="Настройки">⚙︎</button>
+  </header>
+  <div id="habitList"></div>
+  <button class="add-btn" data-act="add">+ Новая привычка</button>
+
+  <div class="section-title">Календарь</div>
+  <div class="card">
+    <div class="cal-head">
+      <button class="nav" data-act="cal-prev" aria-label="Предыдущий месяц">‹</button>
+      <div class="m" id="calTitle"></div>
+      <button class="nav" data-act="cal-next" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="grid" id="calGrid"></div>
+  </div>
+</div>
+
+<div class="screen hidden" id="detail"></div>
+<div id="sheetRoot"></div>
+<input type="file" id="importInput" accept="application/json,.json" class="hidden">
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   Данные
+   ========================================================= */
+const KEY = 'habits-app-v1';
+const COLORS = ['#E5484D','#F76B15','#D69E00','#30A46C','#12A594','#0090FF','#3E63DD','#8E4EC6','#D6409F','#8D6E5A'];
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const WD_FULL = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+
+function emptyState(){ return {version:1, habits:[], done:{}, notes:{}}; }
+
+function normalize(s){
+  if(!s || typeof s!=='object' || !Array.isArray(s.habits)) throw new Error('bad format');
+  const habits = s.habits.filter(h => h && typeof h.id==='string' && typeof h.name==='string')
+    .map(h => ({id:h.id, name:h.name.slice(0,60), color: COLORS.includes(h.color)?h.color:COLORS[0], createdAt:h.createdAt||Date.now()}));
+  const done = {}, notes = {};
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  for(const h of habits){
+    done[h.id] = {}; notes[h.id] = {};
+    const d = s.done && s.done[h.id];
+    if(d && typeof d==='object') for(const k in d) if(re.test(k) && d[k]) done[h.id][k] = 1;
+    const n = s.notes && s.notes[h.id];
+    if(n && typeof n==='object') for(const k in n) if(re.test(k) && typeof n[k]==='string' && n[k].trim()) notes[h.id][k] = n[k];
+  }
+  return {version:1, habits, done, notes};
+}
+
+function load(){
+  let raw = null;
+  try { raw = localStorage.getItem(KEY); } catch(e){ return emptyState(); }
+  if(!raw) return emptyState();
+  try { return normalize(JSON.parse(raw)); }
+  catch(e){
+    // данные повреждены — откладываем копию, чтобы не потерять
+    try { localStorage.setItem(KEY+'-broken-'+Date.now(), raw); } catch(_){}
+    return emptyState();
+  }
+}
+
+let state = load();
+
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+  catch(e){ toast('Не удалось сохранить данные'); return false; }
+}
+
+/* =========================================================
+   Даты
+   ========================================================= */
+const pad = n => String(n).padStart(2,'0');
+const dkey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+const weekKey = d => dkey(addDays(d, -((d.getDay()+6)%7)));   // понедельник недели
+const isFuture = k => k > dkey(today());
+function fmtDay(k, withWd=true){
+  const d = parseKey(k), t = dkey(today()), y = dkey(addDays(today(),-1));
+  if(k===t) return 'Сегодня';
+  if(k===y) return 'Вчера';
+  return `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}` + (withWd ? `, ${WD_FULL[d.getDay()]}` : '') +
+    (d.getFullYear()!==today().getFullYear() ? ` ${d.getFullYear()}` : '');
+}
+function plural(n, one, few, many){
+  const a = Math.abs(n)%100, b = a%10;
+  if(a>10 && a<20) return many;
+  if(b===1) return one;
+  if(b>=2 && b<=4) return few;
+  return many;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* =========================================================
+   Логика серий (как в Duolingo + 1 заморозка в неделю)
+   ========================================================= */
+const isDone = (id,k) => !!(state.done[id] && state.done[id][k]);
+
+function streakInfo(id){
+  const map = state.done[id] || {};
+  const t = today(), tk = dkey(t);
+  const keys = Object.keys(map);
+  const thisWeek = weekKey(t);
+  if(!keys.length) return {count:0, frozen:new Set(), doneToday:false, freezeAvail:true};
+  const earliest = keys.sort()[0];
+  // сегодня ещё не закончился — если не отмечено, считаем от вчера
+  let d = map[tk] ? t : addDays(t,-1);
+  let count = 0, lastDone = -1;
+  const used = new Set(), chain = [];
+  for(let i=0; i<4000; i++){
+    const k = dkey(d);
+    if(k < earliest) break;
+    if(map[k]){ count++; chain.push([k,'d']); lastDone = chain.length-1; }
+    else {
+      const w = weekKey(d);
+      if(used.has(w)) break;
+      used.add(w); chain.push([k,'f']);
+    }
+    d = addDays(d,-1);
+  }
+  const frozen = new Set(chain.slice(0,lastDone+1).filter(c=>c[1]==='f').map(c=>c[0]));
+  const freezeAvail = ![...frozen].some(k => weekKey(parseKey(k))===thisWeek);
+  return {count, frozen, doneToday: !!map[tk], freezeAvail};
+}
+
+function bestStreak(id){
+  const map = state.done[id] || {};
+  const keys = Object.keys(map).sort();
+  if(!keys.length) return 0;
+  const t = today(), tk = dkey(t);
+  let cur = 0, best = 0, used = new Set();
+  for(let d = parseKey(keys[0]); d <= t; d = addDays(d,1)){
+    const k = dkey(d);
+    if(map[k]){ cur++; if(cur>best) best = cur; }
+    else if(k===tk){ /* день ещё идёт */ }
+    else {
+      const w = weekKey(d);
+      if(cur>0 && !used.has(w)) used.add(w);
+      else { cur = 0; used = new Set(); }
+    }
+  }
+  return Math.max(best, streakInfo(id).count);
+}
+
+function toggleDone(id, k){
+  if(isFuture(k)) { toast('Этот день ещё не наступил'); return false; }
+  if(!state.done[id]) state.done[id] = {};
+  const nowDone = !state.done[id][k];
+  if(nowDone) state.done[id][k] = 1; else delete state.done[id][k];
+  save();
+  return nowDone;
+}
+
+/* =========================================================
+   Главный экран
+   ========================================================= */
+let calMonth = new Date(today().getFullYear(), today().getMonth(), 1);
+let animate = null; // {id} — анимация после отметки
+
+function renderMain(){
+  const t = today();
+  document.getElementById('todayLabel').textContent =
+    `${WD_FULL[t.getDay()]}, ${t.getDate()} ${MONTHS_GEN[t.getMonth()]}`;
+
+  const list = document.getElementById('habitList');
+  if(!state.habits.length){
+    list.innerHTML = `<div class="empty"><div class="big">📁</div>
+      <p>Здесь будут ваши привычки.<br>Создайте первую — например, «Зарядка» или «Читать 20 минут».</p></div>`;
+  } else {
+    list.innerHTML = state.habits.map(h => {
+      const s = streakInfo(h.id);
+      const hasNote = !!(state.notes[h.id] && state.notes[h.id][dkey(t)]);
+      const sub = s.doneToday ? 'Сегодня выполнено' : 'Ждёт отметки сегодня';
+      const anim = animate && animate.id===h.id;
+      return `<div class="row">
+        <div class="streak ${s.doneToday?'on':''} ${anim&&s.doneToday?'bump':''}" aria-label="Серия ${s.count} ${plural(s.count,'день','дня','дней')}">
+          <span class="fl">🔥</span><b>${s.count}</b>
+        </div>
+        <button class="folder" style="--c:${h.color}" data-act="open" data-id="${h.id}">
+          <div class="name">${esc(h.name)}</div>
+          <div class="sub">${sub}${hasNote?' · 📝':''}</div>
+          <span class="check ${s.doneToday?'done':''} ${anim?'pop':''}" data-act="check" data-id="${h.id}"
+            role="button" aria-label="${s.doneToday?'Снять отметку':'Отметить выполнение'}">✓</span>
+        </button>
+      </div>`;
+    }).join('');
+  }
+  animate = null;
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  document.getElementById('calTitle').textContent = `${MONTHS[m]} ${y}`;
+  const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
+  const lead = (first.getDay()+6)%7, tk = dkey(today());
+  let html = WD.map(w => `<div class="wd">${w}</div>`).join('');
+  for(let i=0;i<lead;i++) html += '<div></div>';
+  for(let d=1; d<=days; d++){
+    const k = dkey(new Date(y,m,d));
+    const dots = state.habits.filter(h => isDone(h.id,k))
+      .map(h => `<span class="dot" style="background:${h.color}"></span>`).join('');
+    html += `<button class="day ${k===tk?'today':''} ${k>tk?'future':''}" data-act="day" data-day="${k}">
+      <span class="n">${d}</span><span class="dots">${dots}</span></button>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+/* =========================================================
+   Экран привычки (папка)
+   ========================================================= */
+let detail = null; // {id, sel, month}
+
+function openDetail(id){
+  const t = today();
+  detail = {id, sel: dkey(t), month: new Date(t.getFullYear(), t.getMonth(), 1)};
+  renderDetail();
+  const el = document.getElementById('detail');
+  el.classList.remove('hidden');
+  el.scrollTop = 0;
+}
+function closeDetail(){
+  flushNote();
+  detail = null;
+  document.getElementById('detail').classList.add('hidden');
+  renderMain();
+}
+
+function renderDetail(){
+  if(!detail) return;
+  const h = state.habits.find(x => x.id===detail.id);
+  if(!h){ closeDetail(); return; }
+  const s = streakInfo(h.id), best = bestStreak(h.id);
+  const total = Object.keys(state.done[h.id]||{}).length;
+  const sel = detail.sel, selDone = isDone(h.id, sel);
+  const note = (state.notes[h.id]||{})[sel] || '';
+  const el = document.getElementById('detail');
+  el.style.setProperty('--c', h.color);
+  el.innerHTML = `<div class="wrap">
+    <div class="bar">
+      <button class="back" data-act="back"><span>‹</span> Привычки</button>
+      <button class="icon-btn" data-act="detail-menu" aria-label="Действия">•••</button>
+    </div>
+    <div class="hero">
+      <div class="nm">${esc(h.name)}</div>
+      <div class="big">${s.doneToday?'🔥':'<span style="filter:grayscale(1);opacity:.6">🔥</span>'} ${s.count}</div>
+      <div class="lbl">${plural(s.count,'день','дня','дней')} подряд${!s.doneToday && s.count ? ' · отметьте сегодня, чтобы продлить' : ''}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>${best}</b><span>лучшая серия</span></div>
+      <div class="stat"><b>${total}</b><span>всего ${plural(total,'день','дня','дней')}</span></div>
+      <div class="stat"><b>${s.freezeAvail?'❄️ 1':'—'}</b><span>${s.freezeAvail?'заморозка есть':'заморозка уже<br>использована'}</span></div>
+    </div>
+    <button class="mark-btn ${selDone?'done':''}" data-act="d-toggle" ${isFuture(sel)?'disabled':''}>
+      ${selDone ? '✓ Выполнено' : 'Отметить выполнение'} · ${fmtDay(sel,false).toLowerCase()}
+    </button>
+
+    <div class="section-title">Календарь привычки</div>
+    <div class="card">
+      <div class="cal-head">
+        <button class="nav" data-act="d-prev" aria-label="Предыдущий месяц">‹</button>
+        <div class="m">${MONTHS[detail.month.getMonth()]} ${detail.month.getFullYear()}</div>
+        <button class="nav" data-act="d-next" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="grid">${detailCalendar(h, s)}</div>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin:8px 4px 0">Нажмите на день, чтобы отметить его или написать заметку. ❄️ — день спасён заморозкой (одна в неделю).</p>
+
+    <div class="section-title">Заметка · ${fmtDay(sel)}</div>
+    <textarea id="noteInput" placeholder="${isFuture(sel)?'Этот день ещё не наступил':'Как прошло? Что получилось?'}" ${isFuture(sel)?'disabled':''}>${esc(note)}</textarea>
+    <div class="saved" id="savedLbl"></div>
+
+    <div class="section-title">Все заметки</div>
+    <div id="notesList"></div>
+  </div>`;
+  renderNotesList();
+  const ta = document.getElementById('noteInput');
+  ta.addEventListener('input', onNoteInput);
+  ta.addEventListener('blur', () => { flushNote(); renderNotesList(); });
+}
+
+function detailCalendar(h, s){
+  const y = detail.month.getFullYear(), m = detail.month.getMonth();
+  const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
+  const lead = (first.getDay()+6)%7, tk = dkey(today());
+  let html = WD.map(w => `<div class="wd">${w}</div>`).join('');
+  for(let i=0;i<lead;i++) html += '<div></div>';
+  for(let d=1; d<=days; d++){
+    const k = dkey(new Date(y,m,d));
+    const done = isDone(h.id,k), fr = s.frozen.has(k);
+    const hasNote = !!(state.notes[h.id]||{})[k];
+    html += `<button class="day ${done?'fill':''} ${fr?'frozen':''} ${k>tk?'future':''} ${k===detail.sel?'sel':''}"
+      data-act="d-day" data-day="${k}"><span class="n">${d}</span>
+      <span class="ice">${fr?'❄️':hasNote?'📝':''}</span></button>`;
+  }
+  return html;
+}
+
+function renderNotesList(){
+  if(!detail) return;
+  const n = state.notes[detail.id] || {};
+  const keys = Object.keys(n).sort().reverse();
+  const box = document.getElementById('notesList');
+  if(!box) return;
+  box.innerHTML = keys.length ? keys.map(k => `<button class="note-item" data-act="note-open" data-day="${k}">
+      <div class="d">${fmtDay(k)} ${isDone(detail.id,k)?'· ✓':''}</div><div class="t">${esc(n[k])}</div></button>`).join('')
+    : `<p style="color:var(--muted);font-size:15px;margin:4px">Пока нет заметок.</p>`;
+}
+
+let noteTimer = null, notePending = null;
+function onNoteInput(e){
+  notePending = {id: detail.id, day: detail.sel, text: e.target.value};
+  document.getElementById('savedLbl').textContent = '';
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => { flushNote(); const l = document.getElementById('savedLbl'); if(l) l.textContent = 'Сохранено'; }, 500);
+}
+function flushNote(){
+  clearTimeout(noteTimer);
+  if(!notePending) return;
+  const {id, day, text} = notePending;
+  notePending = null;
+  if(!state.notes[id]) state.notes[id] = {};
+  if(text.trim()) state.notes[id][day] = text; else delete state.notes[id][day];
+  save();
+}
+
+/* =========================================================
+   Нижние панели (sheets)
+   ========================================================= */
+let sheetRender = null;
+function openSheet(render){
+  sheetRender = render;
+  const root = document.getElementById('sheetRoot');
+  root.innerHTML = `<div class="backdrop" data-act="sheet-bg"><div class="sheet"><div class="grab"></div><div id="sheetBody"></div></div></div>`;
+  refreshSheet();
+}
+function refreshSheet(){ const b = document.getElementById('sheetBody'); if(b && sheetRender) b.innerHTML = sheetRender(); }
+function closeSheet(){ sheetRender = null; document.getElementById('sheetRoot').innerHTML = ''; }
+
+let form = null; // {id|null, name, color}
+function habitSheet(id){
+  const h = id ? state.habits.find(x => x.id===id) : null;
+  const usedColors = state.habits.map(x => x.color);
+  form = {id: h?h.id:null, name: h?h.name:'', color: h?h.color:(COLORS.find(c => !usedColors.includes(c)) || COLORS[0])};
+  openSheet(() => `
+    <h2>${h ? 'Изменить привычку' : 'Новая привычка'}</h2>
+    <input class="field" id="nameInput" maxlength="40" placeholder="Например: Зарядка" value="${esc(form.name)}" autocomplete="off">
+    <div class="swatches">${COLORS.map(c => `<button class="sw ${c===form.color?'on':''}" style="--c:${c}" data-act="color" data-c="${c}" aria-label="Цвет">${c===form.color?'✓':''}</button>`).join('')}</div>
+    <button class="btn primary" data-act="save-habit">${h ? 'Сохранить' : 'Создать'}</button>
+    <button class="btn" data-act="sheet-close">Отмена</button>`);
+  const inp = document.getElementById('nameInput');
+  inp.addEventListener('input', e => form.name = e.target.value);
+  inp.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); saveHabit(); } });
+  if(!h) setTimeout(() => inp.focus(), 250);
+}
+function saveHabit(){
+  const name = (form.name||'').trim();
+  if(!name){ toast('Введите название'); document.getElementById('nameInput')?.focus(); return; }
+  if(form.id){
+    const h = state.habits.find(x => x.id===form.id);
+    if(h){ h.name = name; h.color = form.color; }
+  } else {
+    const id = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    state.habits.push({id, name, color: form.color, createdAt: Date.now()});
+    state.done[id] = {}; state.notes[id] = {};
+  }
+  save(); closeSheet(); renderMain(); renderDetail();
+  toast(form.id ? 'Сохранено' : 'Привычка создана');
+}
+
+function daySheet(k){
+  openSheet(() => {
+    const fut = isFuture(k);
+    const rows = state.habits.map(h => {
+      const on = isDone(h.id,k);
+      return `<button class="list-row" style="--c:${h.color}" data-act="day-toggle" data-id="${h.id}" data-day="${k}" ${fut?'disabled':''}>
+        <span class="cd"></span><span class="tx">${esc(h.name)}</span><span class="tog ${on?'on':''}"></span></button>`;
+    }).join('');
+    return `<h2>${fmtDay(k)}</h2>
+      ${fut ? '<p>Этот день ещё не наступил — отмечать его пока нельзя.</p>' : ''}
+      ${state.habits.length ? rows : '<p>Сначала создайте привычку.</p>'}
+      <button class="btn" data-act="sheet-close">Готово</button>`;
+  });
+}
+
+function menuSheet(){
+  const h = state.habits.find(x => x.id===detail.id);
+  openSheet(() => `<h2>${esc(h.name)}</h2>
+    <button class="btn" data-act="edit" data-id="${h.id}">✏️ Изменить название и цвет</button>
+    <button class="btn" data-act="move" data-id="${h.id}" data-dir="-1">⬆️ Переместить выше</button>
+    <button class="btn" data-act="move" data-id="${h.id}" data-dir="1">⬇️ Переместить ниже</button>
+    <button class="btn red" data-act="del" data-id="${h.id}">🗑 Удалить привычку</button>
+    <button class="btn" data-act="sheet-close">Отмена</button>`);
+}
+function deleteSheet(id){
+  const h = state.habits.find(x => x.id===id);
+  openSheet(() => `<h2>Удалить «${esc(h.name)}»?</h2>
+    <p>Все отметки и заметки этой привычки будут удалены. Отменить это нельзя.</p>
+    <button class="btn red-fill" data-act="del-confirm" data-id="${id}">Удалить</button>
+    <button class="btn" data-act="sheet-close">Отмена</button>`);
+}
+
+function settingsSheet(){
+  openSheet(() => `<h2>Настройки</h2>
+    <div class="group-title">Резервная копия</div>
+    <p>Данные хранятся только на этом телефоне. Сохраняйте копию в «Файлы» или iCloud раз в неделю — так ничего не потеряется, даже если сменить телефон.</p>
+    <button class="btn primary" data-act="export">💾 Сохранить копию</button>
+    <button class="btn" data-act="import">📂 Восстановить из копии</button>
+
+    <div class="group-title">Ежедневное напоминание</div>
+    <p>Настраивается один раз в стандартном приложении «Команды»:</p>
+    <ol class="howto">
+      <li>Откройте «Команды» → вкладка «Автоматизация» → «+».</li>
+      <li>Выберите «Время суток», задайте время (например, 21:00), «Ежедневно», «Запускать сразу».</li>
+      <li>Нажмите «Новая пустая автоматизация» → «Добавить действие» → найдите «Показать уведомление».</li>
+      <li>Напишите текст: «Отметь привычки 🔥» → «Готово».</li>
+    </ol>
+    <p style="font-size:13px">Невыполненные сегодня привычки в приложении помечены «Ждёт отметки» и серым огоньком.</p>
+    <button class="btn" data-act="sheet-close">Закрыть</button>`);
+}
+
+async function exportData(){
+  flushNote();
+  const json = JSON.stringify(state, null, 2);
+  const name = `privychki-${dkey(today())}.json`;
+  let file;
+  try { file = new File([json], name, {type:'application/json'}); } catch(e){ file = null; }
+  if(file && navigator.canShare && navigator.canShare({files:[file]})){
+    try { await navigator.share({files:[file], title:'Привычки — резервная копия'}); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Копия сохранена');
+}
+
+document.getElementById('importInput').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  try {
+    const data = normalize(JSON.parse(await f.text()));
+    const n = data.habits.length;
+    if(!confirm(`Восстановить копию (${n} ${plural(n,'привычка','привычки','привычек')})? Текущие данные будут заменены.`)) return;
+    state = data; save(); closeSheet();
+    if(detail) closeDetail(); else renderMain();
+    toast('Данные восстановлены');
+  } catch(err){ toast('Это не файл резервной копии'); }
+});
+
+/* =========================================================
+   Нажатия
+   ========================================================= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if(!t) return;
+  const act = t.dataset.act, id = t.dataset.id, day = t.dataset.day;
+  switch(act){
+    case 'check': {
+      e.stopPropagation();
+      const nowDone = toggleDone(id, dkey(today()));
+      animate = {id}; renderMain();
+      if(nowDone){
+        const s = streakInfo(id).count;
+        toast(`🔥 ${s} ${plural(s,'день','дня','дней')} подряд!`);
+      }
+      break;
+    }
+    case 'open': openDetail(id); break;
+    case 'add': habitSheet(null); break;
+    case 'settings': settingsSheet(); break;
+    case 'cal-prev': calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderCalendar(); break;
+    case 'cal-next': calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderCalendar(); break;
+    case 'day': daySheet(day); break;
+    case 'day-toggle': toggleDone(id, day); refreshSheet(); renderMain(); break;
+    case 'sheet-bg': if(e.target===t) closeSheet(); break;
+    case 'sheet-close': closeSheet(); break;
+    case 'color': form.color = t.dataset.c; {
+        const name = document.getElementById('nameInput').value; form.name = name;
+        document.querySelectorAll('.sw').forEach(b => { const on = b.dataset.c===form.color; b.classList.toggle('on',on); b.textContent = on?'✓':''; });
+      } break;
+    case 'save-habit': saveHabit(); break;
+    case 'back': closeDetail(); break;
+    case 'detail-menu': menuSheet(); break;
+    case 'edit': habitSheet(id); break;
+    case 'move': {
+      const i = state.habits.findIndex(x => x.id===id), j = i + Number(t.dataset.dir);
+      if(j<0 || j>=state.habits.length){ toast('Дальше некуда'); break; }
+      [state.habits[i], state.habits[j]] = [state.habits[j], state.habits[i]];
+      save(); closeSheet(); toast('Порядок изменён');
+      break;
+    }
+    case 'del': deleteSheet(id); break;
+    case 'del-confirm':
+      state.habits = state.habits.filter(x => x.id!==id);
+      delete state.done[id]; delete state.notes[id];
+      save(); closeSheet(); closeDetail(); toast('Привычка удалена');
+      break;
+    case 'd-toggle': {
+      flushNote();
+      const nowDone = toggleDone(detail.id, detail.sel);
+      renderDetail();
+      if(nowDone && detail.sel===dkey(today())){ const s = streakInfo(detail.id).count; toast(`🔥 ${s} ${plural(s,'день','дня','дней')} подряд!`); }
+      break;
+    }
+    case 'd-prev': flushNote(); detail.month = new Date(detail.month.getFullYear(), detail.month.getMonth()-1, 1); renderDetail(); break;
+    case 'd-next': flushNote(); detail.month = new Date(detail.month.getFullYear(), detail.month.getMonth()+1, 1); renderDetail(); break;
+    case 'd-day': flushNote(); detail.sel = day; renderDetail(); break;
+    case 'note-open': {
+      flushNote();
+      const d = parseKey(day);
+      detail.sel = day; detail.month = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderDetail();
+      setTimeout(() => document.getElementById('noteInput')?.scrollIntoView({behavior:'smooth', block:'center'}), 50);
+      break;
+    }
+    case 'export': exportData(); break;
+    case 'import': document.getElementById('importInput').click(); break;
+  }
+});
+
+/* =========================================================
+   Прочее
+   ========================================================= */
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// Если приложение было открыто вчера и вернулись к нему сегодня — обновить экран
+let lastDay = dkey(today());
+function checkNewDay(){
+  const k = dkey(today());
+  if(k!==lastDay){
+    lastDay = k;
+    calMonth = new Date(today().getFullYear(), today().getMonth(), 1);
+    renderMain(); if(detail) renderDetail();
+  }
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible') checkNewDay(); else flushNote(); });
+window.addEventListener('pagehide', flushNote);
+setInterval(checkNewDay, 60000);
+
+// Просим браузер не удалять данные
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+// Офлайн-режим
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+renderMain();
+</script>
+</body>
+</html>
